@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- チップ本体 -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M40,34 L68,34 A6,6 0 0 1 74,40 L74,68 A6,6 0 0 1 68,74 L40,74 A6,6 0 0 1 34,68 L34,40 A6,6 0 0 1 40,34 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineJoin="round"
+        android:strokeWidth="3" />
+    <!-- ピン（上下左右） -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M44,27 L44,34 M54,27 L54,34 M64,27 L64,34 M44,74 L44,81 M54,74 L54,81 M64,74 L64,81 M27,44 L34,44 M27,54 L34,54 M27,64 L34,64 M74,44 L81,44 M74,54 L81,54 M74,64 L81,64"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="3" />
+    <!-- 中央のバー（スペックを示すグラフ） -->
+    <path
+        android:fillColor="#4DD0E1"
+        android:pathData="M43,56 L47,56 L47,66 L43,66 Z M51,49 L55,49 L55,66 L51,66 Z M59,43 L63,43 L63,66 L59,66 Z" />
+</vector>

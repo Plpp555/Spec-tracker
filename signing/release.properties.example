@@ -1,0 +1,7 @@
+# release（公開版）用署名鍵の設定の見本。コピーして signing/release.properties を作り、実際の値に書き換える。
+# debug とは別の鍵を使うこと。（実際のファイルは Git にコミットしないこと）
+storeFile=spec-tracker-release.p12
+storeType=PKCS12
+storePassword=CHANGE_ME
+keyAlias=spec-tracker-release
+keyPassword=CHANGE_ME

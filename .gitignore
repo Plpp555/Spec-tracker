@@ -1,0 +1,32 @@
+# ---- 署名鍵・パスワード（debug / release とも絶対にコミットしない） ----
+/signing/*
+!/signing/README.md
+!/signing/*.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+keystore.properties
+
+# ---- ビルド成果物 ----
+*.apk
+*.aab
+*.ap_
+*.dex
+/build/
+/app/build/
+/app/release/
+/app/debug/
+.gradle/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ---- ローカル設定 ----
+local.properties
+.idea/
+*.iml
+.DS_Store
+*.hprof

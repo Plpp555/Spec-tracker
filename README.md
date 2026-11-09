@@ -1,2 +1,81 @@
 # Spec-tracker
-This is a spec tracker developed by Claude. Display the specifications of the terminal in detail.
+
+端末のスペックを、できるだけ詳しく表示する Android アプリです。**試作版 V1**。
+
+- 取得した情報は端末内で表示するだけで、**外部へ送信しません**（`INTERNET` 権限を持ちません）。
+- 共有ボタンを押したときだけ、共有シートでユーザーが選んだ相手へテキストとして渡せます。
+
+## 単位の表記ルール
+
+| 対象 | 単位 |
+| --- | --- |
+| バッテリーの状態（充放電の電力・電力量・充電器の出力） | **W / Wh** に統一（mA・mAh・V は表示しません） |
+| 温度（バッテリー・各センサー） | **℃** に統一 |
+
+- 電流・電圧・容量(mAh)は内部で W / Wh に変換してから表示します。
+- 残量 (%) は単位系を持たない割合なので、そのまま表示します。
+- 電流の向きが端末ごとに逆になる問題があるため、充電中か放電中かは電流の符号ではなく充電状態から判断します。
+- 設計容量・満充電時の電力量など、直接取得できず計算で求めた値には「（推定）」と付けています。
+
+このルールは単体テスト（`BatteryPresenterTest` / `FormatTest` / `ThermalPresentationTest`）で固定しています。
+
+## 表示する情報
+
+| タブ | 主な内容 |
+| --- | --- |
+| 概要 | 主要スペックの一覧 |
+| デバイス | メーカー・モデル・ボード・ビルド情報 |
+| システム | Android / カーネル / 仮想マシン / セキュリティ / WebView など |
+| CPU | SoC・コア構成（クラスタ）・コア別の周波数とガバナー（1 秒ごとに更新） |
+| GPU | レンダラー・OpenGL ES・Vulkan・EGL・拡張機能 |
+| メモリ | RAM・スワップ・アプリのメモリ制限（2 秒ごとに更新） |
+| ストレージ | 容量・空き・ファイルシステム・ボリューム |
+| ディスプレイ | 解像度・画面サイズ・リフレッシュレート・HDR・色域 |
+| バッテリー | 残量・充放電の電力 (W)・電力量 (Wh)・温度 (℃)・劣化の目安（1 秒ごとに更新） |
+| 温度 | バッテリー温度・サーマルステータス・温度センサー（℃、2 秒ごとに更新） |
+| カメラ | 画素数・センサーサイズ・焦点距離・F 値・手ぶれ補正・対応機能 |
+| センサー | 全センサーの仕様 |
+| ネットワーク | Wi-Fi 規格・Bluetooth・NFC・UWB・モバイル通信の対応状況 |
+| その他HW | オーディオ・振動・タッチ・USB |
+| 機能一覧 | システム機能フラグ・共有ライブラリ |
+
+シリアル番号・IMEI・Android ID・SSID・IP アドレスなど、個人や端末を特定しうる情報は取得しません（モバイル通信の事業者名と SIM の国コードは表示します）。
+温度センサーやバッテリーの一部の値は、端末・OS のバージョンによってはアプリから読み取れないため「取得不可」と表示されます。
+
+### 要求する権限
+
+ユーザーへの許可ダイアログが出ない通常権限のみです。
+
+- `ACCESS_NETWORK_STATE` … 接続状態・リンク速度の表示
+- `ACCESS_WIFI_STATE` … Wi-Fi の対応規格の表示
+
+## ビルド
+
+必要なもの: JDK 17 以上、Android SDK（Platform 36 / Build-Tools 36.0.0）。
+
+```bash
+echo "sdk.dir=/path/to/Android/sdk" > local.properties   # または ANDROID_HOME を設定
+./gradlew assembleDebug        # → app/build/outputs/apk/debug/Spec-tracker-V1-debug.apk
+./gradlew testDebugUnitTest    # 単体テスト
+./gradlew lintDebug            # lint
+```
+
+- `minSdk 26`（Android 8.0）/ `targetSdk 36`
+- 依存ライブラリは、AGP 8.13 / Gradle 8.14 / `compileSdk 36` で動く世代に合わせています。
+
+## 署名鍵（重要）
+
+アプリを更新できるよう、**debug と公開版（release）では別々の署名鍵**を使います。
+
+- どちらの鍵ファイル・パスワードも **Git にはコミットしません**（`signing/` は `.gitignore` 済み）。
+- debug 鍵は非公開です。このリポジトリには含まれず、一般には取得できません。
+- `signing/debug.properties` が無い環境（コントリビューターの手元など）では、Gradle 標準のローカル debug 鍵で署名されます。
+  この場合の APK は、配布用 debug 鍵のビルドへ上書き更新できません。
+- release 鍵が無い場合、release ビルドは**署名なし**になります（debug 鍵で署名されることはありません）。
+- debug 版のアプリ ID は `io.github.plpp555.spectracker.debug`、公開版は `io.github.plpp555.spectracker` で、同じ端末に共存できます。
+
+鍵の作り方・保管方法・更新の注意点は [docs/SIGNING.md](docs/SIGNING.md) を参照してください。
+
+## 状態
+
+- 試作版 V1 は **debug 版のみ**作成しています。公開版（release）は未作成です。

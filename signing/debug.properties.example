@@ -1,0 +1,7 @@
+# debug 用署名鍵の設定の見本。コピーして signing/debug.properties を作り、実際の値に書き換える。
+# （実際のファイルは Git にコミットしないこと）
+storeFile=spec-tracker-debug.p12
+storeType=PKCS12
+storePassword=CHANGE_ME
+keyAlias=spec-tracker-debug
+keyPassword=CHANGE_ME
