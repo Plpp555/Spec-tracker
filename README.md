@@ -49,6 +49,15 @@
 - `ACCESS_NETWORK_STATE` … 接続状態・リンク速度の表示
 - `ACCESS_WIFI_STATE` … Wi-Fi の対応規格の表示
 
+## 端末による演出
+
+端末の販売名（`ro.product.marketname`。取れなければ型番）から、自動で演出を切り替えます。
+
+- **Ultra**（販売名に単語として `Ultra` を含む）: 左上に「Ultra Ver」を表示し、背景を銀河（星雲・天の川・瞬く星）にします。画像ファイルは使わず、描画で作っています。
+- **特装版**（販売名に `○○ Edition` を含む）: 起動時に画面を少し暗くして端末名（例: `Xiaomi Mi 10 Ultra ○○ Edition`）をポップアップし、1 秒後に通常画面へ移ります。
+- `Japan Edition` / `Global Edition` などの**地域エディションは対象外**です（`DeviceEdition.kt` の地域名リスト）。
+- 販売名を名乗らない端末では、型番だけで判定します。判定できなければ通常表示です。
+
 ## ビルド
 
 必要なもの: JDK 17 以上、Android SDK（Platform 36 / Build-Tools 36.0.0）。

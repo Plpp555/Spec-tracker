@@ -2,6 +2,9 @@ package io.github.plpp555.spectracker.ui
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +30,7 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,11 +38,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -49,6 +56,7 @@ import io.github.plpp555.spectracker.collector.SpecCatalog
 import io.github.plpp555.spectracker.model.SpecCategory
 import io.github.plpp555.spectracker.model.SpecGroup
 import io.github.plpp555.spectracker.model.toPlainText
+import io.github.plpp555.spectracker.util.EditionInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,27 +64,63 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpecApp() {
+fun SpecApp(edition: EditionInfo = EditionInfo.NONE) {
     val context = LocalContext.current
+    val ultra = edition.isUltra
     val categories = SpecCatalog.categories
     var selected by rememberSaveable { mutableIntStateOf(0) }
     // タブを切り替えても、取得済みの内容を一瞬で表示できるようにキャッシュする
     val cache = remember { mutableStateMapOf<String, List<SpecGroup>>() }
     val scope = rememberCoroutineScope()
 
+    // 特装版（Edition）: 起動直後の 1 秒間だけ画面を暗くして端末名を表示する。画面回転では再表示しない。
+    var splashVisible by rememberSaveable(edition.editionName) { mutableStateOf(edition.editionName != null) }
+    LaunchedEffect(edition.editionName) {
+        if (splashVisible) {
+            delay(1000)
+            splashVisible = false
+        }
+    }
+
+    // Ultra は背景が暗い銀河のため、システムバーのアイコンを明色にする
+    LaunchedEffect(ultra) {
+        if (ultra) {
+            (context as? ComponentActivity)?.enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.dark(Color.Transparent.toArgb()),
+                navigationBarStyle = SystemBarStyle.dark(Color.Transparent.toArgb()),
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+    if (ultra) GalaxyBackground()
     Scaffold(
+        containerColor = if (ultra) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             Column {
                 TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = if (ultra) Color.Transparent else MaterialTheme.colorScheme.surface,
+                    ),
                     title = {
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text("Spec-tracker", fontWeight = FontWeight.Bold)
-                            Text(
-                                text = "  試作版 V1",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 3.dp),
-                            )
+                        Column {
+                            if (ultra) {
+                                Text(
+                                    text = "Ultra Ver",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFD1C4FF),
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text("Spec-tracker", fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = "  試作版 V1",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 3.dp),
+                                )
+                            }
                         }
                     },
                     actions = {
@@ -85,7 +129,11 @@ fun SpecApp() {
                         }
                     },
                 )
-                PrimaryScrollableTabRow(selectedTabIndex = selected, edgePadding = 8.dp) {
+                PrimaryScrollableTabRow(
+                    selectedTabIndex = selected,
+                    edgePadding = 8.dp,
+                    containerColor = if (ultra) Color.Transparent else MaterialTheme.colorScheme.surface,
+                ) {
                     categories.forEachIndexed { index, category ->
                         Tab(
                             selected = index == selected,
@@ -100,8 +148,11 @@ fun SpecApp() {
         CategoryContent(
             category = categories[selected],
             cache = cache,
+            translucent = ultra,
             modifier = Modifier.padding(padding),
         )
+    }
+    edition.editionName?.let { EditionSplash(name = it, visible = splashVisible) }
     }
 }
 
@@ -109,6 +160,7 @@ fun SpecApp() {
 private fun CategoryContent(
     category: SpecCategory,
     cache: MutableMap<String, List<SpecGroup>>,
+    translucent: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current.applicationContext
@@ -135,17 +187,20 @@ private fun CategoryContent(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(groups) { group -> GroupCard(group) }
+                items(groups) { group -> GroupCard(group, translucent) }
             }
         }
     }
 }
 
 @Composable
-private fun GroupCard(group: SpecGroup) {
+private fun GroupCard(group: SpecGroup, translucent: Boolean) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        colors = CardDefaults.cardColors(
+            // 銀河の背景が透けて見えるよう、Ultra ではカードを半透明にする
+            containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = if (translucent) 0.72f else 1f),
+        ),
     ) {
         SelectionContainer {
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
