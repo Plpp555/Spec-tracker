@@ -64,7 +64,11 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpecApp(edition: EditionInfo = EditionInfo.NONE) {
+fun SpecApp(
+    edition: EditionInfo = EditionInfo.NONE,
+    splashKey: Int = 0,
+    debugActions: @Composable () -> Unit = {},
+) {
     val context = LocalContext.current
     val ultra = edition.isUltra
     val categories = SpecCatalog.categories
@@ -74,8 +78,8 @@ fun SpecApp(edition: EditionInfo = EditionInfo.NONE) {
     val scope = rememberCoroutineScope()
 
     // 特装版（Edition）: 起動直後の 1 秒間だけ画面を暗くして端末名を表示する。画面回転では再表示しない。
-    var splashVisible by rememberSaveable(edition.editionName) { mutableStateOf(edition.editionName != null) }
-    LaunchedEffect(edition.editionName) {
+    var splashVisible by rememberSaveable(edition.editionName, splashKey) { mutableStateOf(edition.editionName != null) }
+    LaunchedEffect(edition.editionName, splashKey) {
         if (splashVisible) {
             delay(1000)
             splashVisible = false
@@ -89,6 +93,8 @@ fun SpecApp(edition: EditionInfo = EditionInfo.NONE) {
                 statusBarStyle = SystemBarStyle.dark(Color.Transparent.toArgb()),
                 navigationBarStyle = SystemBarStyle.dark(Color.Transparent.toArgb()),
             )
+        } else {
+            (context as? ComponentActivity)?.enableEdgeToEdge()
         }
     }
 
@@ -124,6 +130,7 @@ fun SpecApp(edition: EditionInfo = EditionInfo.NONE) {
                         }
                     },
                     actions = {
+                        debugActions()
                         IconButton(onClick = { scope.launch { shareAll(context) } }) {
                             Icon(Icons.Default.Share, contentDescription = "すべてのスペックを共有")
                         }

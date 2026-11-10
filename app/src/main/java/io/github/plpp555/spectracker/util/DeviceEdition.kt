@@ -53,6 +53,7 @@ object DeviceEdition {
             SystemProps["ro.product.odm.marketname"],
             SystemProps["ro.product.vendor.marketname"],
             SystemProps["ro.product.system.marketname"],
+            DeviceCatalog.marketNameFor(Build.MODEL), // 販売名を名乗らない端末は、型番の対応表で補う
             Build.MODEL,
         )
         return detect(names, Build.MANUFACTURER)
